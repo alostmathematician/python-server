@@ -2,7 +2,7 @@ import socket
 import threading
 from utils.log import Logger
 
-LOG_TYPE=False
+LOG_TYPE_SERVER=False
 MAX_CONNECTION=5
 WELCOME_MSG="welcome board !!! Waiting for command..."
 IDENT_MSG="Please enter username and password to connect!!!"
@@ -15,15 +15,23 @@ class BaseServer:
         if not isinstance(port,int):
             raise TypeError("port number must be integers")
         self._socket=None
-        self._logger=Logger("server log",file_log=LOG_TYPE)
+        self._logger=Logger("server log",file_log=LOG_TYPE_SERVER)
     def start(self):
         pass
     def _serve(self):
         pass
     def _retry(self):
         pass
+    @staticmethod
+    def login(conn_socket): 
+        user_name=conn_socket.recv(1024).decode('utf-8')
+        password=conn_socket.recv(1024).decode('utf-8')
+        if user_name=='qin' and password=='87438366':
+            return True
+        else:
+            return False
 
-class Server(BaseServer):
+class TcpServer(BaseServer):
     def __init__(self,ip,port):
         super().__init__(ip,port)
         self._socket=socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
@@ -58,15 +66,3 @@ class Server(BaseServer):
         self._logger.warning("client %s:%s has failed to logged in"%(str(client_addr[0]),str(client_addr[1])))
         msg=FAIL_MESSAGE
         conn_socket.sendall(msg.encode())
-    @staticmethod
-    def login(conn_socket): 
-        user_name="username:"
-        conn_socket.sendall(user_name.encode())
-        user_name=conn_socket.recv(1024).decode('utf-8')
-        password="password:"
-        conn_socket.sendall(password.encode())
-        password=conn_socket.recv(1024).decode('utf-8')
-        if user_name=='qin' and password=='87438366':
-            return True
-        else:
-            return False
