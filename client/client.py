@@ -1,5 +1,8 @@
 import socket
  
+class Client:
+    def __init__(self,ip,port):
+        
 if __name__ == '__main__':
     client_socket=socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
     client_socket.connect(('127.0.0.1',9999))

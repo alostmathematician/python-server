@@ -1,18 +1,31 @@
-import socketserver
 import socket
 import threading
-from log import Logger
+from utils.log import Logger
 
+LOG_TYPE=False
 MAX_CONNECTION=5
 WELCOME_MSG="welcome board !!! Waiting for command..."
 IDENT_MSG="Please enter username and password to connect!!!"
 FAIL_MESSAGE="Failed to provide verification.Please try again"
-class Server:
+
+class BaseServer:
     def __init__(self,ip,port):
         if not isinstance(ip,str):
             raise TypeError("ip address must be string")
         if not isinstance(port,int):
             raise TypeError("port number must be integers")
+        self._socket=None
+        self._logger=Logger("server log",file_log=LOG_TYPE)
+    def start(self):
+        pass
+    def _serve(self):
+        pass
+    def _retry(self):
+        pass
+
+class Server(BaseServer):
+    def __init__(self,ip,port):
+        super().__init__(ip,port)
         self._socket=socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
         self._socket.bind((ip,port))
         self._socket.listen(MAX_CONNECTION)
@@ -46,7 +59,7 @@ class Server:
         msg=FAIL_MESSAGE
         conn_socket.sendall(msg.encode())
     @staticmethod
-    def login(conn_socket):
+    def login(conn_socket): 
         user_name="username:"
         conn_socket.sendall(user_name.encode())
         user_name=conn_socket.recv(1024).decode('utf-8')
@@ -57,34 +70,3 @@ class Server:
             return True
         else:
             return False
-
-
-
-
-class Handler(socketserver.BaseRequestHandler):
-    def handle(self):
-        print("connected from ",self.client_address)
-        msg="welcome board"
-        self.request.sendall(msg.encode())
-        while True:
-            msg=self.request.recv(1024)
-            if not msg:
-                print("disconnected from ",self.client_address)
-                break
-            print("message from ",self.client_address,":",msg.decode('utf-8'))
-            msg=input("message to:")
-            self.request.sendall(msg.encode())
-        
-if __name__ == '__main__':
-    # server=socketserver.TCPServer(('127.0.0.1',9999),Handler)
-    # for _ in range(5):
-    #     t=threading.Thread(target=server.serve_forever)
-    #     t.daemon=True
-    #     t.start()
-    # server.serve_forever()
-    server=Server('127.0.0.1',9999)
-    for _ in range(MAX_CONNECTION):
-        t=threading.Thread(target=server.start)
-        t.daemon=True
-        t.start()
-    server.start()
